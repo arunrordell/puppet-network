@@ -7,4 +7,3 @@ spec/fixtures/
 coverage/
 *.swp
 .vendor/
-*.iml
