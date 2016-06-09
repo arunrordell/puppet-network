@@ -16,30 +16,13 @@ Puppet::Type.type(:service).provide :systemd_network, :parent => :systemd do
     self.start
   end
 
-  def ifdown_all
-    # On certain RHEL / CentOS 7.0 ISOs some of the interfaces like
-    # em1 seem to keep their IP configuration settings after being
-    # reconfigured into a bonded interface until the network is
-    # restarted a second time. To work-around we ensure all interfaces
-    # are down
-    Facter["interfaces"].value.split(",").each do |iface|
-      execute("ifdown %s" % iface, :failonfail => false) unless iface == "lo"
-    end
-
-    # Workaround for case where dhclient gets left running if failures
-    # happen halfway through a "service network start" and cannot be
-    # managed after that due to those orphan processes.
+  def stop
+    super
     execute("pkill dhclient", :failonfail => false)
   end
 
-  def stop
-    super
-    ifdown_all
-  end
-
   def start
-    ifdown_all
+    execute("pkill dhclient", :failonfail => false)
     super
   end
 end
-
